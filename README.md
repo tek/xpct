@@ -13,7 +13,7 @@ for {
 
 ```
 
-# Use
+# Module IDs
 ```sbt
 libraryDependencies ++= List(
   "io.tryp" %% "xpct-specs2" % "0.1.0",
