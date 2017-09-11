@@ -9,6 +9,7 @@ extracting values contained in `Option`s or `Either`s through typeclass based ma
 for {
   a <- IO.pure(Either.right("test")) must contain("test")
   b <- IO.pure(Option(5)) must beSome(be_>=(2))
+  _ <- IO.pure(s"$a $b") must_== "test 5"
 } yield ()
 
 ```
@@ -45,7 +46,7 @@ trait Match[A, G[_], B, C]
 monadically.
 When a `G[B]` value is passed to the implicit `must` method on the expectable, an `Xpct` instance is produced, which
 uses the `C` value returned from `Match.apply` for monadic composition, allowing to use the expectation in a
-for-comprehension, regardless of the type of `A`.
+for-comprehension regardless of the type of `A`.
 
 # IO and retrying
 When testing asynchronous programs, especially UIs, it is not unusual to wait for a condition to become fulfilled.
