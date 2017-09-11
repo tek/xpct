@@ -2,7 +2,7 @@
 This package provides an algebra for the abstraction of simultaneous assertion of conditions and extraction of a value
 from heterogeneous effects, all contained in a computation effect.
 
-In more concrete terms, you can sequence `IO`s in a for comprehension, adding a spec expectation to each step, while
+In more concrete terms, you can sequence `IO`s in a for-comprehension, adding a spec expectation to each step, while
 extracting values contained in `Option`s or `Either`s through typeclass based matchers:
 
 ```scala
@@ -44,8 +44,8 @@ trait Match[A, G[_], B, C]
 `A` is the expectable value; matches can be performed on differing types, producing a third type `C` that is extracted
 monadically.
 When a `G[B]` value is passed to the implicit `must` method on the expectable, an `Xpct` instance is produced, which
-uses the `C` value returned from `Match.apply` for monadic composition, allowing to use the expectation in a for
-comprehension, regardless of the type of `A`.
+uses the `C` value returned from `Match.apply` for monadic composition, allowing to use the expectation in a
+for-comprehension, regardless of the type of `A`.
 
 # IO and retrying
 When testing asynchronous programs, especially UIs, it is not unusual to wait for a condition to become fulfilled.
