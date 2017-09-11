@@ -1,5 +1,6 @@
 libs in ThisBuild := Libs
 setScala in ThisBuild := true
+twelve in ThisBuild := true
 
 fs2Version := "0.10.0-M6"
 catsVersion := "1.0.0-MF"
