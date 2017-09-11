@@ -13,8 +13,6 @@ object Publish
     if (snapshot) Opts.resolver.sonatypeSnapshots
     else Resolver.url("sonatype staging", url("https://oss.sonatype.org/service/local/staging/deploy/maven2"))
 
-  def settings = publishSettings ++ releaseSettings
-
   def publishSettings = List(
     publishMavenStyle := true,
     publishTo := Some(pubTo(isSnapshot.value)),
