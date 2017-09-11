@@ -87,10 +87,11 @@ trait Sleep[F[_]]
 # Spec frameworks
 
 ## specs2
-Fir [specs2] integration, the `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for
+For [specs2] integration, the `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for
 automatic conversion of `Xpct` values to specs2 `Fragment`s.
 
 A convenience trait `XpctSpec` is provided, which includes the implicit conversion to the extension class with `must`
 methods.
 
 [cats]: https://github.com/typelevel/cats
+[specs2]: https://github.com/etorreborre/specs2
