@@ -22,8 +22,8 @@ libraryDependencies ++= List(
 ```
 
 # Features
-* typeclass based matchers
-* monadic extraction of tested values
+* [typeclass based matchers](#matching-and-extracting)
+* [monadic extraction of tested values](#matching-and-extracting)
 * parameterized IO for the main effect
 * transparent sleep/retry mechanism
 * integration with spec frameworks
