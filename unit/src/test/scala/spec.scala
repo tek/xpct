@@ -16,8 +16,8 @@ import fs2.Scheduler
 import MatchResultCombinators._
 import Fs2Sleep.Sleep_IO
 
-class XpctSpec(implicit ec: ExecutionContext)
-extends IOSpec
+class Specs2Spec(implicit ec: ExecutionContext)
+extends XpctSpec
 {
   def name = "spec"
 
