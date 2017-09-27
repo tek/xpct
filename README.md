@@ -17,8 +17,8 @@ for {
 # Module IDs
 ```sbt
 libraryDependencies ++= List(
-  "io.tryp" %% "xpct-specs2" % "0.1.0",
-  "io.tryp" %% "xpct-fs2" % "0.1.0"
+  "io.tryp" %% "xpct-specs2" % "0.1.1",
+  "io.tryp" %% "xpct-fs2" % "0.1.1"
 )
 ```
 
@@ -98,5 +98,16 @@ automatic conversion of `Xpct` values to specs2 `Fragment`s.
 A convenience trait `XpctSpec` is provided, which includes the implicit conversion to the extension class with `must`
 methods.
 
+## scalatest
+For [scalatest] integration, the `xpct-scalatest` package contains the trait `XpctSpec`, providing a helper function
+`xpct` that converts an `Xpct` to a `TestFailedException`.
+
+## utest
+For [utest] integration, the `xpct-utest` package contains the trait `XpctSpec`, providing a helper function `xpct` that
+converts an `Xpct` to an exception.
+
+
 [cats]: https://github.com/typelevel/cats
 [specs2]: https://github.com/etorreborre/specs2
+[scalatest]: https://github.com/scalatest/scalatest
+[utest]: https://github.com/lihaoyi/utest

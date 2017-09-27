@@ -10,6 +10,7 @@ object LibVersions
   val simulacrumVersion = settingKey[String]("simulacrum version")
   val specs2Version = settingKey[String]("specs2 version")
   val scalatestVersion = settingKey[String]("scalatest version")
+  val utestVersion = settingKey[String]("utest version")
 }
 
 object LibVersionsPlugin
@@ -37,5 +38,9 @@ extends tryp.Libs
 
   val scalatest = ids(
     "org.scalatest" %% "scalatest" % scalatestVersion.value
-    )
+  )
+
+  val utest = ids(
+    "com.lihaoyi" %% "utest" % utestVersion.value
+  )
 }
