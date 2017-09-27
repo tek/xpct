@@ -1,6 +1,7 @@
 package xpct
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{FiniteDuration, Duration}
+import scala.concurrent.{Future, Await, ExecutionContext}
 
 import cats.kernel.Comparison
 import cats.{Functor, FlatMap, Applicative, Monad, Id, Eq, Order, Foldable, MonadError, ApplicativeError}
@@ -173,6 +174,15 @@ trait Sleep[F[_]]
   def sleep(d: FiniteDuration): F[Unit]
 }
 
+object Sleep
+{
+  implicit def Sleep_Future(implicit ec: ExecutionContext): Sleep[Future] =
+    new Sleep[Future] {
+      def sleep(d: FiniteDuration): Future[Unit] =
+        Future(Thread.sleep(d.toMillis))
+    }
+}
+
 sealed trait Xpct[F[_], A]
 {
   import Xpct._
@@ -274,6 +284,11 @@ object EvalXpct
   implicit val EvalXpct_IO: EvalXpct[IO] =
     new EvalXpct[IO] {
       def sync[A](fa: IO[A]) = fa.unsafeRunSync()
+    }
+
+  implicit val EvalXpct_Future: EvalXpct[Future] =
+    new EvalXpct[Future] {
+      def sync[A](fa: Future[A]) = Await.result(fa, Duration.Inf)
     }
 }
 
