@@ -9,6 +9,7 @@ object LibVersions
   val catsEffectVersion = settingKey[String]("cats-effect version")
   val simulacrumVersion = settingKey[String]("simulacrum version")
   val specs2Version = settingKey[String]("specs2 version")
+  val scalatestVersion = settingKey[String]("scalatest version")
 }
 
 object LibVersionsPlugin
@@ -33,4 +34,8 @@ extends tryp.Libs
   val specs2 = ids(
     "org.specs2" %% "specs2-core" % specs2Version.value
   )
+
+  val scalatest = ids(
+    "org.scalatest" %% "scalatest" % scalatestVersion.value
+    )
 }
