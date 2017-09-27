@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 
 import sbtrelease.ReleasePlugin.autoImport.{ReleaseTransformations, releaseProcess, ReleaseStep}
+import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import ReleaseTransformations._
 
 object Publish
@@ -25,6 +26,7 @@ object Publish
   def releaseSettings = List(
     publish := (),
     publishLocal := (),
+    publishSigned := (),
     publishTo := None,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
