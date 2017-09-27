@@ -25,6 +25,7 @@ libraryDependencies ++= List(
 # Features
 * [typeclass based matchers](#matching-and-extracting)
 * [monadic extraction of tested values](#matching-and-extracting)
+* [arbitrary matcher nesting](#matching-and-extracting)
 * [parameterized IO for the main effect](#io-and-retrying)
 * [transparent sleep/retry mechanism](#io-and-retrying)
 * [integration with spec frameworks](#spec-frameworks)
@@ -47,6 +48,9 @@ monadically.
 When a `G[B]` value is passed to the implicit `must` method on the expectable, an `Xpct` instance is produced, which
 uses the `C` value returned from `Match.apply` for monadic composition, allowing to use the expectation in a
 for-comprehension regardless of the type of `A`.
+
+Nesting matchers is a mechanism that is implemented in an ad-hoc way in common spec frameworks. With **xpct**,
+a separate instance of `Match` can be defined that has another matcher type as its `B`, allowing arbitrary nesting.
 
 # IO and retrying
 When testing asynchronous programs, especially UIs, it is not unusual to wait for a condition to become fulfilled.
