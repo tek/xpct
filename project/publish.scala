@@ -23,6 +23,9 @@ object Publish
   )
 
   def releaseSettings = List(
+    publish := (),
+    publishLocal := (),
+    publishTo := None,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
