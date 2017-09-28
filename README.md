@@ -17,8 +17,8 @@ for {
 # Module IDs
 ```sbt
 libraryDependencies ++= List(
-  "io.tryp" %% "xpct-specs2" % "0.1.1",
-  "io.tryp" %% "xpct-fs2" % "0.1.1"
+  "io.tryp" %% "xpct-specs2" % "0.1.2",
+  "io.tryp" %% "xpct-fs2" % "0.1.2"
 )
 ```
 
