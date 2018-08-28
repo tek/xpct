@@ -1,6 +1,5 @@
 package xpct
 
-import cats.MonadError
 import cats.effect.IO
 
 class XpctMust[A, F[_]](io: F[A])
@@ -19,7 +18,7 @@ class XpctMust[A, F[_]](io: F[A])
 
 trait ToXpctMust
 {
-  implicit def ToXpctMust[A, F[_]](io: F[A])(implicit ME: MonadError[F, Throwable]): XpctMust[A, F] = new XpctMust(io)
+  implicit def ToXpctMust[A, F[_]](io: F[A]): XpctMust[A, F] = new XpctMust(io)
 }
 
 trait LiftAnyIOMust

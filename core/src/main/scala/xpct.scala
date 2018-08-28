@@ -2,7 +2,7 @@ package xpct
 
 import scala.concurrent.duration.FiniteDuration
 
-import cats.{Functor, Applicative, Monad, Foldable, MonadError, ApplicativeError}
+import cats.{Functor, Applicative, Monad, MonadError, ApplicativeError}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicativeError._

@@ -4,9 +4,7 @@ import cats.MonadError
 
 import org.specs2.specification.core.ImmutableSpecificationStructure
 import org.specs2.specification.create.SpecificationCreation
-import org.specs2.matcher.{Matcher, BeEqualTo, MatchResultCombinators}
 import org.specs2.execute.{Result, AsResult, Success => SpecsSuccess, Failure => SpecsFailure}
-import MatchResultCombinators._
 
 trait Specs2Instances
 {
@@ -16,7 +14,7 @@ trait Specs2Instances
     new AsResult[Xpct[F, B]] {
       def asResult(t: => Xpct[F, B]): Result = {
         EvalXpct[F].sync(t.run) match {
-          case Right(a) => SpecsSuccess()
+          case Right(_) => SpecsSuccess()
           case Left(err) => SpecsFailure(err)
         }
       }

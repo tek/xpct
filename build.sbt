@@ -1,23 +1,81 @@
-projectName in ThisBuild := Some("xpct")
-libs in ThisBuild := Libs
+import ReleaseTransformations._
 
-fs2Version := "0.10.0-M6"
-catsVersion := "1.0.0-MF"
-catsEffectVersion := "0.4"
-simulacrumVersion := "0.10.0"
-specs2Version := "4.0.0-RC4"
-scalatestVersion := "3.0.1"
-utestVersion := "0.5.3"
+scalaVersion in ThisBuild := "2.12.6"
+releaseCrossBuild := true
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  setReleaseVersion,
+  releaseStepCommandAndRemaining("+publishSigned"),
+  releaseStepCommand("sonatypeReleaseAll"),
+  commitReleaseVersion,
+  tagRelease,
+  setNextVersion,
+  commitNextVersion
+)
 
-val core: Project = "core".paradise("2.+") / "xpct core"
-val specs2: Project = "specs2" / "specs2 extensions" << core
-val scalatest: Project = "scalatest" / "scalatest extensions" << core
-val utest: Project =
-  ("utest" / "utest extensions" << core)
-    .settings(testFrameworks += new TestFramework("utest.runner.Framework"))
-val fs2: Project = "fs2" / "fs2 sleep extension" << core
-val unit: Project = "unit" / "unit tests" << fs2 << specs2
-val root: Project =
-  ("xpct" ~ ".")
+val fs2Version = "0.10.0-M6"
+val catsVersion = "1.0.0-MF"
+val catsEffectVersion = "0.4"
+val simulacrumVersion = "0.10.0"
+val specs2Version = "4.0.0-RC4"
+val scalatestVersion = "3.0.1"
+val utestVersion = "0.5.3"
+
+val core =
+  pro("core")
+    .settings(
+      addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      libraryDependencies ++= List(
+        "org.typelevel" %% "cats-core" % catsVersion,
+        "org.typelevel" %% "cats-effect" % catsEffectVersion,
+        "com.github.mpilquist" %% "simulacrum" % simulacrumVersion,
+      )
+    )
+
+val specs2 =
+  pro("specs2")
+    .dependsOn(core)
+    .settings(
+      libraryDependencies ++= List(
+        "org.specs2" %% "specs2-core" % specs2Version
+      )
+    )
+
+val scalatest =
+  pro("scalatest")
+    .dependsOn(core)
+    .settings(
+      libraryDependencies ++= List(
+        "org.scalatest" %% "scalatest" % scalatestVersion
+      )
+    )
+
+val utest =
+  pro("utest")
+    .dependsOn(core)
+    .settings(
+      testFrameworks += new TestFramework("utest.runner.Framework"),
+      libraryDependencies ++= List(
+        "com.lihaoyi" %% "utest" % utestVersion
+      )
+    )
+
+val fs2 =
+  pro("fs2")
+    .dependsOn(core)
+    .settings(
+      libraryDependencies ++= List(
+        "co.fs2" %% "fs2-core" % fs2Version
+      )
+    )
+
+val unit =
+  pro("unit")
+    .dependsOn(fs2, specs2)
+
+val root =
+  basicProject(project.in(file(".")))
     .aggregate(core, specs2, scalatest, fs2)
-    .settings(Publish.releaseSettings)
+    .settings(noPublish)
