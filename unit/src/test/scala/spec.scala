@@ -5,16 +5,8 @@ import scala.util.Random
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-import org.specs2.matcher.{MatchResultCombinators, NumericMatchers, OptionMatchers, Matcher}
-import org.specs2.execute.AsResult
-
 import cats.effect.IO
 import cats.implicits._
-
-import fs2.Scheduler
-
-import MatchResultCombinators._
-import Fs2Sleep.Sleep_IO
 
 class Specs2Spec(implicit ec: ExecutionContext)
 extends XpctSpec

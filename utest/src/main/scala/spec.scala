@@ -12,7 +12,7 @@ extends ToXpctMust
   (implicit ME: MonadError[F, Throwable])
   : Unit = {
     EvalXpct[F].sync(x.run) match {
-      case Right(a) =>
+      case Right(_) =>
       case Left(err) => throw new XpctFailed(err)
     }
   }

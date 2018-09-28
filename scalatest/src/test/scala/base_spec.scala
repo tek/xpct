@@ -14,7 +14,7 @@ with XpctSpec
   "test" in {
     xpct {
       for {
-        a <- Future(1) must_== 2
+        a <- Future(2) must_== 2
       } yield ()
     }
   }

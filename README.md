@@ -17,8 +17,7 @@ for {
 # Module IDs
 ```sbt
 libraryDependencies ++= List(
-  "io.tryp" %% "xpct-specs2" % "0.1.2",
-  "io.tryp" %% "xpct-fs2" % "0.1.2"
+  "io.tryp" %% "xpct-specs2" % "0.1.4",
 )
 ```
 
@@ -29,7 +28,7 @@ libraryDependencies ++= List(
 * [parameterized IO for the main effect](#io-and-retrying)
 * [transparent sleep/retry mechanism](#io-and-retrying)
 * [integration with spec frameworks](#spec-frameworks)
-* [cats] based
+* [cats-effect] based
 
 # Matching and extracting
 
@@ -80,14 +79,7 @@ trait EvalXpct[F[_]]
 }
 ```
 
-For the retry operation, an additional typeclass instance is required:
-
-```scala
-trait Sleep[F[_]]
-{
-  def sleep(d: FiniteDuration): F[Unit]
-}
-```
+For the retry operation, an instance of `cats.effect.Timer[F]` is required.
 
 # Spec frameworks
 
@@ -107,7 +99,7 @@ For [utest] integration, the `xpct-utest` package contains the trait `XpctSpec`,
 converts an `Xpct` to an exception.
 
 
-[cats]: https://github.com/typelevel/cats
+[cats-effect]: https://github.com/typelevel/cats-effect
 [specs2]: https://github.com/etorreborre/specs2
 [scalatest]: https://github.com/scalatest/scalatest
 [utest]: https://github.com/lihaoyi/utest
