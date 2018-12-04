@@ -6,6 +6,8 @@ In more concrete terms, you can sequence `IO`s in a for-comprehension, adding a 
 extracting values contained in `Option`s or `Either`s through typeclass based matchers:
 
 ```scala
+import cats.implicits._
+
 for {
   a <- IO.pure(Either.right("test")) must contain("test")
   b <- IO.pure(Option(5)) must beSome(be_>=(2))
