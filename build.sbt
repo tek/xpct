@@ -25,7 +25,6 @@ val utestVersion = "0.6.3"
 val core =
   pro("core")
     .settings(
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
       libraryDependencies ++= List(
         "org.typelevel" %% "cats-core" % catsVersion,
         "org.typelevel" %% "cats-effect" % catsEffectVersion,
