@@ -1,6 +1,7 @@
 import ReleaseTransformations._
 
-scalaVersion in ThisBuild := "2.12.7"
+scalaVersion in ThisBuild := "2.13.0"
+crossScalaVersions in ThisBuild := List("2.12.10")
 releaseCrossBuild := true
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,

@@ -17,7 +17,6 @@ extends AutoPlugin
 
     def basicProject(pro: Project): Project =
       pro.settings(
-        scalaVersion := "2.12.6",
         organization := "io.tryp",
         resolvers += Resolver.sonatypeRepo("releases"),
         scalacOptions ++= List(
