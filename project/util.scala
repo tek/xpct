@@ -6,7 +6,7 @@ extends AutoPlugin
   object autoImport
   {
     def testDeps = libraryDependencies ++= List(
-      "org.specs2" %% "specs2-core" % "4.1.0" % "test"
+      "org.specs2" %% "specs2-core" % "4.7.1" % "test"
     )
 
     val github = "https://github.com/tek"
@@ -25,8 +25,7 @@ extends AutoPlugin
           "-unchecked",
           "-language:higherKinds",
           "-language:implicitConversions",
-          "-Xfuture",
-          "-Ypartial-unification",
+          "-language:existentials",
           "-Ywarn-numeric-widen",
           "-Ywarn-value-discard",
           "-Ywarn-unused:imports",
@@ -41,8 +40,8 @@ extends AutoPlugin
       basicProject(Project(n, file(n)))
       .settings(
         name := s"$projectName-$n",
-        addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7"),
-        addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
+        addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+        addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
         publishMavenStyle := true,
         publishTo := Some(
           if (isSnapshot.value) Opts.resolver.sonatypeSnapshots

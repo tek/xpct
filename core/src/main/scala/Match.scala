@@ -1,12 +1,12 @@
 package xpct
 
+import cats.{Eq, Foldable, Order}
 import cats.kernel.Comparison
-import cats.{Eq, Order, Foldable}
 import cats.syntax.either._
 
 trait Match[A, G[_], B, C]
 {
-  def apply(a: A, fb: G[B]): Either[String, C]
+  def apply(a: A, fb: G[B]): AssertResult[C]
 }
 
 object Match
@@ -17,8 +17,8 @@ object Match
   {
     implicit def Match_IsAny[A]: Match[A, IsAny, A, A] =
       new Match[A, IsAny, A, A] {
-        def apply(a: A, fb: IsAny[A]): Either[String, A] = {
-          Right(a)
+        def apply(a: A, fb: IsAny[A]): AssertResult[A] = {
+          AssertResult.Success(a, XpSuccess(s"$a exists"))
         }
       }
   }
@@ -31,10 +31,12 @@ object Match
     (implicit nested: Match[A, G, B, C])
     : Match[A, Not, G[B], A] =
       new Match[A, Not, G[B], A] {
-        def apply(a: A, fb: Not[G[B]]): Either[String, A] = {
+        def apply(a: A, fb: Not[G[B]]): AssertResult[A] = {
           nested(a, fb.value) match {
-            case Right(b) => Left(s"$a matched $b in $fb, should have failed")
-            case Left(_) => Right(a)
+            case AssertResult.Success(b, XpSuccess(message)) =>
+              AssertResult.Failure(XpFailure.Assert(s"$a matched $b in $fb, should have failed ($message)"))
+            case AssertResult.Failure(failure) =>
+              AssertResult.Success(a, XpSuccess(s"$fb failed for $a ($failure)"))
           }
         }
       }
@@ -46,10 +48,10 @@ object Match
   {
     implicit def Match_Equals[A]: Match[A, Equals, A, A] =
       new Match[A, Equals, A, A] {
-        def apply(a: A, fb: Equals[A]): Either[String, A] = {
+        def apply(a: A, fb: Equals[A]): AssertResult[A] = {
           val b = fb.value
-          if (a == b) Right(b)
-          else Left(s"$a != $b")
+          if (a == b) AssertResult.success(s"$a == $b")(b)
+          else AssertResult.failure(s"$a /= $b")
         }
       }
   }
@@ -60,13 +62,13 @@ object Match
   {
     implicit def Match_IsSome[A: Eq]: Match[Option[A], IsSome, A, A] =
       new Match[Option[A], IsSome, A, A] {
-        def apply(fa: Option[A], fb: IsSome[A]): Either[String, A] = {
+        def apply(fa: Option[A], fb: IsSome[A]): AssertResult[A] = {
           val a1 = fb.value
           fa match {
             case Some(v) =>
-              if (Eq[A].eqv(v, a1)) Right(v)
-              else Left(s"$v != $a1")
-            case None => Left(s"got `None` for $fb")
+              if (Eq[A].eqv(v, a1)) AssertResult.success(s"Some contains $a1")(v)
+              else AssertResult.failure(s"is `Some`, but $v != $a1")
+            case None => AssertResult.failure(s"is `None`, expected $fb")
           }
         }
       }
@@ -75,10 +77,10 @@ object Match
     (implicit nested: Match[A, G, B, C])
     : Match[Option[A], IsSome, G[B], C] =
       new Match[Option[A], IsSome, G[B], C] {
-        def apply(fa: Option[A], fb: IsSome[G[B]]): Either[String, C] = {
+        def apply(fa: Option[A], fb: IsSome[G[B]]): AssertResult[C] = {
           fa match {
             case Some(a) => nested(a, fb.value)
-            case None => Left(s"got `None` for $fb")
+            case None => AssertResult.failure(s"is `None`, expected $fb")
           }
         }
       }
@@ -90,10 +92,10 @@ object Match
   {
     implicit def Match_Compares[A: Order]: Match[A, Compares, A, A] =
       new Match[A, Compares, A, A] {
-        def apply(a: A, fb: Compares[A]): Either[String, A] = {
+        def apply(a: A, fb: Compares[A]): AssertResult[A] = {
           fb.comp.lift(Order[A].comparison(a, fb.value)) match {
-            case Some(_) => Right(a)
-            case None => Left(s"$a is not ${fb.desc} ${fb.value}")
+            case Some(_) => AssertResult.success(s"$a ${fb.desc} ${fb.value}")(a)
+            case None => AssertResult.failure(s"$a is not ${fb.desc} ${fb.value}")
           }
         }
       }
@@ -105,10 +107,10 @@ object Match
   {
     implicit def Match_Contains_mono[F[_]: Foldable, A: Eq]: Match[F[A], Contains, A, A] =
       new Match[F[A], Contains, A, A] {
-        def apply(fa: F[A], fb: Contains[A]): Either[String, A] = {
+        def apply(fa: F[A], fb: Contains[A]): AssertResult[A] = {
           Foldable[F].find(fa)(Eq[A].eqv(_, fb.value)) match {
-            case Some(a) => Right(a)
-            case None => Left(s"$fa does not contain ${fb.value}")
+            case Some(a) => AssertResult.success(s"contains ${fb.value}")(a)
+            case None => AssertResult.failure(s"does not contain ${fb.value}")
           }
         }
       }
@@ -117,20 +119,20 @@ object Match
     (implicit nested: Match[A, G, B, C])
     : Match[F[A], Contains, G[B], C] =
       new Match[F[A], Contains, G[B], C] {
-        def apply(fa: F[A], fb: Contains[G[B]]): Either[String, C] = {
+        def apply(fa: F[A], fb: Contains[G[B]]): AssertResult[C] = {
           Foldable[F]
-            .foldLeft(fa, Either.left[List[String], C](Nil)) {
+            .foldLeft(fa, Either.left[List[XpFailure], (C, XpSuccess)](Nil)) {
               case (Right(a), _) => Right(a)
               case (Left(err), a) =>
                 nested(a, fb.value) match {
-                  case Right(a) => Right(a)
-                  case Left(e) => Left(e :: err)
+                  case AssertResult.Success(c, success) => Right((c, success))
+                  case AssertResult.Failure(e) => Left(e :: err)
                 }
             }
             match {
-              case Right(a) => Right(a)
-              case Left(Nil) => Left(s"empty $fa cannot contain ${fb.value}")
-              case Left(es) => Left(s"no element in $fa matched:\n${es.mkString("; ")}")
+              case Right((c, success)) => AssertResult.success(s"contains a match for $fb: ${success.message}")(c)
+              case Left(Nil) => AssertResult.failure(s"empty $fa cannot contain ${fb.value}")
+              case Left(es) => AssertResult.failure(s"no element in $fa matched:\n${es.mkString("; ")}")
             }
         }
       }

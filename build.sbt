@@ -1,33 +1,17 @@
-import ReleaseTransformations._
+ThisBuild / scalaVersion := "2.13.1"
 
-scalaVersion in ThisBuild := "2.13.0"
-crossScalaVersions in ThisBuild := List("2.12.10")
-releaseCrossBuild := true
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  setReleaseVersion,
-  releaseStepCommandAndRemaining("+publishSigned"),
-  releaseStepCommand("sonatypeReleaseAll"),
-  commitReleaseVersion,
-  tagRelease,
-  setNextVersion,
-  commitNextVersion
-)
-
-val fs2Version = "1.0.0-RC1"
-val catsVersion = "1.4.0"
-val catsEffectVersion = "1.0.0"
-val specs2Version = "4.0.0-RC4"
-val scalatestVersion = "3.0.1"
-val utestVersion = "0.6.3"
+val catsVersion = "2.0.0"
+val catsEffectVersion = "2.0.0"
+val specs2Version = "4.7.1"
+val scalatestVersion = "3.0.8"
+val utestVersion = "0.6.9"
+val klkVersion = "0.1.1-SNAPSHOT"
 
 val core =
   pro("core")
     .settings(
       libraryDependencies ++= List(
-        "org.typelevel" %% "cats-core" % catsVersion,
+        "org.typelevel" %% "cats-free" % catsVersion,
         "org.typelevel" %% "cats-effect" % catsEffectVersion,
       )
     )
@@ -60,11 +44,36 @@ val utest =
       )
     )
 
+val klk =
+  pro("klk")
+    .dependsOn(core)
+    .settings(
+      libraryDependencies ++= List(
+        "io.tryp" %% "kallikrein-core" % klkVersion
+      )
+    )
+
 val unit =
   pro("unit")
     .dependsOn(specs2)
 
 val root =
   basicProject(project.in(file(".")))
-    .aggregate(core, specs2, scalatest, utest)
+    .aggregate(core, specs2, scalatest, utest, klk)
     .settings(noPublish)
+
+import ReleaseTransformations._
+
+releaseCrossBuild := true
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  setReleaseVersion,
+  releaseStepCommandAndRemaining("+publish"),
+  releaseStepCommand("sonatypeReleaseAll"),
+  commitReleaseVersion,
+  tagRelease,
+  setNextVersion,
+  commitNextVersion
+)
