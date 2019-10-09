@@ -1,27 +1,35 @@
 package xpct
 
-import cats.effect.IO
+import cats.Applicative
+import cats.implicits._
 
-final class XpctMust[A, F[_]](io: F[A])
+final class XpctMust[F[_]: Applicative, Subject](subject: Xp[F, Subject])
 {
   import Match.Not
   import matcher._
 
-  def must[G[_], B, C](b: G[B])(implicit mtch: Match[A, G, B, C]): Xp[F, C] = Xp.assert(io, b)
+  def must[Predicate[_], Target, Output]
+  (b: Predicate[Target])
+  (implicit m: Match[Predicate, Target, Subject, Output])
+  : Xp[F, Output] =
+    subject.flatMap(a => Xp.assert(a.pure[F], b))
 
-  def must_==(a: A): Xp[F, A] = must(be(a))
+  def must_==(a: Subject): Xp[F, Subject] =
+    must(equal(a))
 
-  def mustNot[G[_], B, C](b: G[B])(implicit mtch: Match[A, Not, G[B], C]): Xp[F, C] = Xp.assert(io, not(b))
-
-  def xp: Xp[F, A] = Xp.Thunk(io)
+  def mustNot[Predicate[_], Target, Output]
+  (b: Predicate[Target])
+  (implicit mtch: Match[Not, Predicate[Target], Subject, Output])
+  : Xp[F, Output] =
+    subject.flatMap(a => Xp.assert(a.pure[F], not(b)))
 }
 
 trait ToXpctMust
 {
-  implicit def ToXpctMust[A, F[_]](io: F[A]): XpctMust[A, F] = new XpctMust(io)
+  implicit def ToXpctMust[F[_]: Applicative, A](subject: Xp[F, A]): XpctMust[F, A] =
+    new XpctMust(subject)
 }
 
-trait LiftAnyIOMust
-{
-  implicit def LiftAnyIOMust[A](a: => A): XpctMust[A, IO] = new XpctMust(IO(a))
-}
+object must
+extends ToXpctMust
+with ToXpctThunkMust

@@ -1,8 +1,8 @@
-# xpct
-This package provides an algebra for the abstraction of simultaneous assertion of conditions and extraction of a value
-from heterogeneous effects, all contained in a computation effect.
+# About
+**xpct** provides an algebra that abstracts assertion of conditions and extraction of values from heterogeneous data
+types contained in a computation effect.
 
-In more concrete terms, you can sequence `IO`s in a for-comprehension, adding a spec expectation to each step, while
+In more concrete terms, you can sequence `IO`s in a for-comprehension, adding an expectation to each step, while
 extracting values contained in `Option`s or `Either`s through typeclass based matchers:
 
 ```scala
@@ -18,12 +18,11 @@ for {
 
 # Module IDs
 ```sbt
-libraryDependencies ++= List(
-  "io.tryp" %% "xpct-core" % "0.1.4",
-  "io.tryp" %% "xpct-specs2" % "0.1.4",
-  "io.tryp" %% "xpct-scalatest" % "0.1.4",
-  "io.tryp" %% "xpct-utest" % "0.1.4",
-)
+"io.tryp" %% "xpct-core" % "0.2.0"
+"io.tryp" %% "xpct-klk" % "0.2.0"
+"io.tryp" %% "xpct-specs2" % "0.2.0"
+"io.tryp" %% "xpct-scalatest" % "0.2.0"
+"io.tryp" %% "xpct-utest" % "0.2.0"
 ```
 
 # Features
@@ -32,33 +31,33 @@ libraryDependencies ++= List(
 * [arbitrary matcher nesting](#matching-and-extracting)
 * [parameterized IO for the main effect](#io-and-retrying)
 * [transparent sleep/retry mechanism](#io-and-retrying)
-* [integration with spec frameworks](#spec-frameworks)
+* [integration with spec frameworks](#test-frameworks)
 * [cats-effect] based
 
-# Matching and extracting
+# Matching and Extracting
 
-Matches are based on the typeclass `Match`, where `G[_]` is an arbitrary data type that represents a specific condition,
-like `IsSome[Int](5)` (here `B` is `Int`):
+Matches are based on the typeclass `Match`, where `Predicate[_]` is an arbitrary data type that represents a specific
+condition, like `IsSome[Int](5)` (here `Target` is `Int`):
 
 ```scala
-trait Match[A, G[_], B, C]
+trait Match[Predicate[_], Target, Subject, Output]
 {
-  def apply(a: A, fb: G[B]): Either[String, C]
+  def apply(a: Subject, fb: Predicate[Target]): AssertResult[Output]
 }
 ```
 
-`A` is the expectable value; matches can be performed on differing types, producing a third type `C` that is extracted
-monadically.
-When a `G[B]` value is passed to the implicit `must` method on the expectable, an `Xpct` instance is produced, which
-uses the `C` value returned from `Match.apply` for monadic composition, allowing to use the expectation in a
-for-comprehension regardless of the type of `A`.
+`Subject` is the expectable value; matches can be performed on differing types, producing a third type `Output` that is
+extracted monadically.
+When a `Predicate[Target]` value is passed to the implicit `must` method on the expectable, an `Xp` value is
+produced, which uses the `Output` value returned from `Match.apply` for monadic composition, allowing you to use the
+expectation in a for-comprehension regardless of the type of `Subject`.
 
 Nesting matchers is a mechanism that is implemented in an ad-hoc way in common spec frameworks. With **xpct**,
-a separate instance of `Match` can be defined that has another matcher type as its `B`, allowing arbitrary nesting.
+a separate instance of `Match` can be defined that has another matcher type as its `Target`, allowing arbitrary nesting.
 
-# IO and retrying
+# IO and Retrying
 When testing asynchronous programs, especially UIs, it is not unusual to wait for a condition to become fulfilled.
-In frameworks like **specs2** and **scalatest**, this feature is implemented as a special case with severe limitations
+In frameworks like **[specs2]** and **[scalatest]**, this feature is implemented as a special case with severe limitations
 on composability.
 **xpct** treats retrying as a first class operation, allowing to retry a sequence of expectations with the same
 semantics as strict operations:
@@ -75,22 +74,22 @@ for {
 } yield ()
 ```
 
-Aside from `cats.effect.IO`, arbitrary async effects can be used, as long as they implement the typeclass `EvalXpct`:
+Aside from `cats.effect.IO`, arbitrary async effects can be used, as long as they implement the typeclass `EvalXp`:
 
 ```scala
-trait EvalXpct[F[_]]
+trait EvalXp[F[_]]
 {
-  def sync[A](fa: F[A]): A
+  def apply[A](fa: F[A]): A
 }
 ```
 
 For the retry operation, an instance of `cats.effect.Timer[F]` is required.
 
-# Spec frameworks
+# Test Frameworks
 
 ## [kallikrein]
 The `xpct-klk` package contains instances of `Compile[Xp]` and `TestResult[XpResult]`.
-Either import the package `xpct.klk._`, mix in `KlkInstances` or subclass `XpctKlkTest[F]`.
+Either import the package `xpct.klk._`, mix in `XpctKlk` or subclass `XpctKlkTest[F]`.
 
 ## [specs2]
 The `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for automatic conversion of

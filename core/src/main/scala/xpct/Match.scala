@@ -4,9 +4,9 @@ import cats.{Eq, Foldable, Order}
 import cats.kernel.Comparison
 import cats.syntax.either._
 
-trait Match[A, G[_], B, C]
+trait Match[Predicate[_], Target, Subject, Output]
 {
-  def apply(a: A, fb: G[B]): AssertResult[C]
+  def apply(a: Subject, fb: Predicate[Target]): AssertResult[Output]
 }
 
 object Match
@@ -15,8 +15,8 @@ object Match
 
   object IsAny
   {
-    implicit def Match_IsAny[A]: Match[A, IsAny, A, A] =
-      new Match[A, IsAny, A, A] {
+    implicit def Match_IsAny[A]: Match[IsAny, A, A, A] =
+      new Match[IsAny, A, A, A] {
         def apply(a: A, fb: IsAny[A]): AssertResult[A] = {
           AssertResult.Success(a, XpSuccess(s"$a exists"))
         }
@@ -27,11 +27,11 @@ object Match
 
   object Not
   {
-    implicit def Match_Not[A, G[_], B, C]
-    (implicit nested: Match[A, G, B, C])
-    : Match[A, Not, G[B], A] =
-      new Match[A, Not, G[B], A] {
-        def apply(a: A, fb: Not[G[B]]): AssertResult[A] = {
+    implicit def Match_Not[Predicate[_], Target, Subject, A]
+    (implicit nested: Match[Predicate, Target, Subject, A])
+    : Match[Not, Predicate[Target], Subject, Subject] =
+      new Match[Not, Predicate[Target], Subject, Subject] {
+        def apply(a: Subject, fb: Not[Predicate[Target]]): AssertResult[Subject] = {
           nested(a, fb.value) match {
             case AssertResult.Success(b, XpSuccess(message)) =>
               AssertResult.Failure(XpFailure.Assert(s"$a matched $b in $fb, should have failed ($message)"))
@@ -46,8 +46,8 @@ object Match
 
   object Equals
   {
-    implicit def Match_Equals[A]: Match[A, Equals, A, A] =
-      new Match[A, Equals, A, A] {
+    implicit def Match_Equals[A]: Match[Equals, A, A, A] =
+      new Match[Equals, A, A, A] {
         def apply(a: A, fb: Equals[A]): AssertResult[A] = {
           val b = fb.value
           if (a == b) AssertResult.success(s"$a == $b")(b)
@@ -60,8 +60,8 @@ object Match
 
   object IsSome
   {
-    implicit def Match_IsSome[A: Eq]: Match[Option[A], IsSome, A, A] =
-      new Match[Option[A], IsSome, A, A] {
+    implicit def Match_IsSome[A: Eq]: Match[IsSome, A, Option[A], A] =
+      new Match[IsSome, A, Option[A], A] {
         def apply(fa: Option[A], fb: IsSome[A]): AssertResult[A] = {
           val a1 = fb.value
           fa match {
@@ -73,11 +73,11 @@ object Match
         }
       }
 
-    implicit def Match_IsSome_Match[A, G[_], B, C]
-    (implicit nested: Match[A, G, B, C])
-    : Match[Option[A], IsSome, G[B], C] =
-      new Match[Option[A], IsSome, G[B], C] {
-        def apply(fa: Option[A], fb: IsSome[G[B]]): AssertResult[C] = {
+    implicit def Match_IsSome_Match[Predicate[_], Target, Subject, Output]
+    (implicit nested: Match[Predicate, Target, Subject, Output])
+    : Match[IsSome, Predicate[Target], Option[Subject], Output] =
+      new Match[IsSome, Predicate[Target], Option[Subject], Output] {
+        def apply(fa: Option[Subject], fb: IsSome[Predicate[Target]]): AssertResult[Output] = {
           fa match {
             case Some(a) => nested(a, fb.value)
             case None => AssertResult.failure(s"is `None`, expected $fb")
@@ -90,8 +90,8 @@ object Match
 
   object Compares
   {
-    implicit def Match_Compares[A: Order]: Match[A, Compares, A, A] =
-      new Match[A, Compares, A, A] {
+    implicit def Match_Compares[A: Order]: Match[Compares, A, A, A] =
+      new Match[Compares, A, A, A] {
         def apply(a: A, fb: Compares[A]): AssertResult[A] = {
           fb.comp.lift(Order[A].comparison(a, fb.value)) match {
             case Some(_) => AssertResult.success(s"$a ${fb.desc} ${fb.value}")(a)
@@ -105,23 +105,23 @@ object Match
 
   object Contains
   {
-    implicit def Match_Contains_mono[F[_]: Foldable, A: Eq]: Match[F[A], Contains, A, A] =
-      new Match[F[A], Contains, A, A] {
-        def apply(fa: F[A], fb: Contains[A]): AssertResult[A] = {
-          Foldable[F].find(fa)(Eq[A].eqv(_, fb.value)) match {
+    implicit def Match_Contains_mono[T[_]: Foldable, A: Eq]: Match[Contains, A, T[A], A] =
+      new Match[Contains, A, T[A], A] {
+        def apply(fa: T[A], fb: Contains[A]): AssertResult[A] = {
+          Foldable[T].find(fa)(Eq[A].eqv(_, fb.value)) match {
             case Some(a) => AssertResult.success(s"contains ${fb.value}")(a)
             case None => AssertResult.failure(s"does not contain ${fb.value}")
           }
         }
       }
 
-    implicit def Match_Contains_Match[F[_]: Foldable, A, G[_], B, C]
-    (implicit nested: Match[A, G, B, C])
-    : Match[F[A], Contains, G[B], C] =
-      new Match[F[A], Contains, G[B], C] {
-        def apply(fa: F[A], fb: Contains[G[B]]): AssertResult[C] = {
-          Foldable[F]
-            .foldLeft(fa, Either.left[List[XpFailure], (C, XpSuccess)](Nil)) {
+    implicit def Match_Contains_Match[T[_]: Foldable, Predicate[_], Target, Subject, Output]
+    (implicit nested: Match[Predicate, Target, Subject, Output])
+    : Match[Contains, Predicate[Target], T[Subject], Output] =
+      new Match[Contains, Predicate[Target], T[Subject], Output] {
+        def apply(fa: T[Subject], fb: Contains[Predicate[Target]]): AssertResult[Output] = {
+          Foldable[T]
+            .foldLeft(fa, Either.left[List[XpFailure], (Output, XpSuccess)](Nil)) {
               case (Right(a), _) => Right(a)
               case (Left(err), a) =>
                 nested(a, fb.value) match {
@@ -137,13 +137,28 @@ object Match
         }
       }
   }
+
+  case class Extract[A, B](f: PartialFunction[A, B])
+
+  object Extract
+  {
+    implicit def Match_Extract[A, B]: Match[Extract[A, ?], B, A, B] =
+      new Match[Extract[A, ?], B, A, B] {
+        def apply(a: A, fb: Extract[A, B]): AssertResult[B] = {
+          fb.f.lift(a) match {
+            case Some(b) => AssertResult.success(s"extracted $b from $a")(b)
+            case None => AssertResult.failure(s"couldn't extract from $a")
+          }
+        }
+      }
+  }
 }
 
 trait MatcherCons
 {
   import Match._
 
-  def be[A](a: A): Equals[A] = Equals(a)
+  def equal[A](a: A): Equals[A] = Equals(a)
 
   def not[A](a: A): Not[A] = Not(a)
 
@@ -151,10 +166,15 @@ trait MatcherCons
 
   def beASome[A]: IsSome[IsAny[A]] = IsSome(IsAny[A]())
 
-  def be_>=[A](a: A): Compares[A] =
+  def gt[A](a: A): Compares[A] =
+    Compares(a, { case Comparison.GreaterThan => true }, ">")
+
+  def gte[A](a: A): Compares[A] =
     Compares(a, { case Comparison.GreaterThan | Comparison.EqualTo => true }, ">=")
 
   def contain[A](a: A): Contains[A] = Contains(a)
+
+  def extract[A, B](f: PartialFunction[A, B]): Extract[A, B] = Extract(f)
 }
 
 object matcher

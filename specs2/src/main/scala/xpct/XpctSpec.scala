@@ -12,7 +12,7 @@ trait Specs2Instances
   : AsResult[Xp[F, A]] =
     new AsResult[Xp[F, A]] {
       def asResult(t: => Xp[F, A]): Result = {
-        EvalXp[F].sync(RunXp(t)) match {
+        EvalXp[F].apply(RunXp(t)) match {
           case XpResult.Success(_) => SpecsSuccess()
           case XpResult.Failure(_, failure) => SpecsFailure(failure.toString)
         }
@@ -26,5 +26,5 @@ extends Specs2Instances
 trait XpctSpec
 extends ImmutableSpecificationStructure
 with SpecificationCreation
-with ToXpctMust
+with XpctTest
 with Specs2Instances

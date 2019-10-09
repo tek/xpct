@@ -47,7 +47,7 @@ extends Specification
   "xpct klk retry" >> test(single(true)("5 == 5")) {
     for {
       counter <- Xp.suspend(Ref.of[IO, Int](0))
-      _ <- Xp.retry(Xp.assert(counter.update(_ + 1) *> counter.get, Match.Equals(5)), 4, Some(100.milli))
+      _ <- Xp.retry(4)(Xp.assert(counter.update(_ + 1) *> counter.get, Match.Equals(5)))
     } yield ()
   }
 
@@ -59,11 +59,11 @@ extends Specification
       }
     for {
       counter <- Xp.suspend(Ref.of[IO, Int](0))
-      _ <- Xp.retry(Xp.attempt(Xp.assert(run(counter), Match.Equals(5))), 4, Some(100.milli))
+      _ <- Xp.retryEvery(100.milli)(4)(Xp.attempt(Xp.assert(run(counter), Match.Equals(5))))
     } yield ()
   }
 
   "xpct klk must matcher" >> test(single(true)("contains 2")) {
-    new XpctMust(IO.pure(List(1, 2, 3))).must(matcher.contain(2))
+    new XpctThunkMust(IO.pure(List(1, 2, 3))).must(matcher.contain(2))
   }
 }

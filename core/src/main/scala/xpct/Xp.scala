@@ -65,7 +65,7 @@ with XpFunctions
   case class Attempt[F[_], A](inner: Xp[F, A])
   extends Xp[F, A]
 
-  case class Retry[F[_], A](inner: Xp[F, A], times: Int, interval: Option[FiniteDuration], timer: Timer[F])
+  case class Retry[F[_], A](inner: Xp[F, A], times: Int, interval: Option[(FiniteDuration, Timer[F])])
   extends Xp[F, A]
 
   case class Pure[F[_], A](a: A)
@@ -80,14 +80,19 @@ with XpFunctions
 
 private[xpct] trait XpFunctions
 {
-  def assert[F[_], G[_], A, B, C](fa: F[A], target: G[B])(implicit m: Match[A, G, B, C]): Xp[F, C] =
-    Xp.Assert(fa, (a: A) => m(a, target))
+  def assert[F[_], Predicate[_], Target, Subject, Output]
+  (fa: F[Subject], pred: Predicate[Target])
+  (implicit m: Match[Predicate, Target, Subject, Output]): Xp[F, Output] =
+    Xp.Assert(fa, (a: Subject) => m(a, pred))
 
   def attempt[F[_], A](inner: Xp[F, A]): Xp[F, A] =
     Xp.Attempt(inner)
 
-  def retry[F[_]: Timer, A](inner: Xp[F, A], times: Int, interval: Option[FiniteDuration]): Xp[F, A] =
-    Xp.Retry(inner, times, interval, Timer[F])
+  def retry[F[_], A](times: Int)(inner: Xp[F, A]): Xp[F, A] =
+    Xp.Retry(inner, times, None)
+
+  def retryEvery[F[_]: Timer, A](interval: FiniteDuration)(times: Int)(inner: Xp[F, A]): Xp[F, A] =
+    Xp.Retry(inner, times, Some((interval, Timer[F])))
 
   def suspend[F[_], A](fa: F[A]): Xp[F, A] =
     Xp.Thunk(fa)
@@ -125,10 +130,10 @@ object CompileXp
       }
 
   def retry[F[_]: MonadError[*[_], Throwable], A]
-  (xp: Xp[F, A], limit: Int, interval: Option[FiniteDuration], timer: Timer[F])
+  (xp: Xp[F, A], limit: Int, interval: Option[(FiniteDuration, Timer[F])])
   : Xp.XpM[F, A] = {
     val sleep: Xp.XpM[F, Unit] =
-      Xp.liftF(interval.traverse_(timer.sleep))
+      Xp.liftF(interval.traverse_ { case (i, timer) => timer.sleep(i) })
     def loop(iteration: Int): Xp.XpM[F, A] = {
       CompileXp(xp).recoverWith {
         case XpFailure.NonFatal(_) if iteration < limit =>
@@ -153,8 +158,8 @@ object CompileXp
         fa match {
           case Xp.Assert(thunk, f) =>
             assert(thunk, f)
-          case Xp.Retry(inner, times, interval, timer) =>
-            retry(inner, times, interval, timer)
+          case Xp.Retry(inner, times, interval) =>
+            retry(inner, times, interval)
           case Xp.Attempt(inner) =>
             attempt(inner)
           case Xp.Pure(a) =>

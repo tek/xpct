@@ -8,7 +8,6 @@ import utest._
 
 object BaseSpec
 extends TestSuite
-with ToXpctMust
 with XpctSpec
 {
   val tests = Tests {
