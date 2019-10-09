@@ -7,14 +7,14 @@ import org.specs2.specification.create.SpecificationCreation
 
 trait Specs2Instances
 {
-  implicit def AsResult_Xpct[F[_]: EvalXpct: Sleep, A]
+  implicit def AsResult_Xpct[F[_]: EvalXp, A]
   (implicit ME: MonadError[F, Throwable])
-  : AsResult[Xpct[F, A]] =
-    new AsResult[Xpct[F, A]] {
-      def asResult(t: => Xpct[F, A]): Result = {
-        EvalXpct[F].sync(t.run) match {
-          case Right(_) => SpecsSuccess()
-          case Left(err) => SpecsFailure(err)
+  : AsResult[Xp[F, A]] =
+    new AsResult[Xp[F, A]] {
+      def asResult(t: => Xp[F, A]): Result = {
+        EvalXp[F].sync(RunXp(t)) match {
+          case XpResult.Success(_) => SpecsSuccess()
+          case XpResult.Failure(_, failure) => SpecsFailure(failure.toString)
         }
       }
     }

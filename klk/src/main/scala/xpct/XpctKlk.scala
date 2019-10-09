@@ -4,7 +4,6 @@ package klk
 import _root_.klk.{Compile, KlkResult, SimpleTest, TestResult}
 import cats.{Functor, MonadError}
 import cats.data.NonEmptyList
-import cats.effect.Timer
 import cats.implicits._
 
 object XpctKlk

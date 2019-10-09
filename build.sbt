@@ -5,7 +5,7 @@ val catsEffectVersion = "2.0.0"
 val specs2Version = "4.7.1"
 val scalatestVersion = "3.0.8"
 val utestVersion = "0.6.9"
-val klkVersion = "0.1.1-SNAPSHOT"
+val klkVersion = "0.1.1"
 
 val core =
   pro("core")

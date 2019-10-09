@@ -4,18 +4,18 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.implicits._
+import utest._
 
-import org.scalatest.WordSpec
-
-class BaseSpec
-extends WordSpec
+object BaseSpec
+extends TestSuite
+with ToXpctMust
 with XpctSpec
 {
-  "test" in {
-    xpct {
-      for {
-        a <- Future(2) must_== 2
-      } yield ()
+  val tests = Tests {
+    "test" - {
+      xpct {
+        Future(2) must_== 2
+      }
     }
   }
 }

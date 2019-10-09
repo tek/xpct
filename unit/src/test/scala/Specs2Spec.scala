@@ -1,9 +1,8 @@
 package xpct
 
-import scala.util.Random
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.Random
 
 import cats.effect.IO
 import cats.implicits._
