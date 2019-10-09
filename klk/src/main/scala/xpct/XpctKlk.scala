@@ -28,7 +28,7 @@ object XpctKlk
   }
 }
 
-private[klk] trait XpctKlkInstances
+trait XpctKlkInstances
 {
   implicit def TestResult_Xp: TestResult[XpResult] =
     new TestResult[XpResult] {

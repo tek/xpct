@@ -88,23 +88,28 @@ For the retry operation, an instance of `cats.effect.Timer[F]` is required.
 
 # Spec frameworks
 
-## specs2
-For [specs2] integration, the `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for
-automatic conversion of `Xpct` values to specs2 `Fragment`s.
+## [kallikrein]
+The `xpct-klk` package contains instances of `Compile[Xp]` and `TestResult[XpResult]`.
+Either import the package `xpct.klk._`, mix in `KlkInstances` or subclass `XpctKlkTest[F]`.
+
+## [specs2]
+The `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for automatic conversion of
+`Xpct` values to specs2 `Fragment`s.
 
 A convenience trait `XpctSpec` is provided, which includes the implicit conversion to the extension class with `must`
 methods.
 
-## scalatest
-For [scalatest] integration, the `xpct-scalatest` package contains the trait `XpctSpec`, providing a helper function
-`xpct` that converts an `Xpct` to a `TestFailedException`.
+## [scalatest]
+The `xpct-scalatest` package contains the trait `XpctSpec`, providing a helper function `xpct` that converts an `Xpct`
+to a `TestFailedException`.
 
-## utest
-For [utest] integration, the `xpct-utest` package contains the trait `XpctSpec`, providing a helper function `xpct` that
-converts an `Xpct` to an exception.
+## [utest]
+The `xpct-utest` package contains the trait `XpctSpec`, providing a helper function `xpct` that converts an `Xpct` to an
+exception.
 
 
 [cats-effect]: https://github.com/typelevel/cats-effect
+[kallikrein]: https://github.com/tek/kallikrein
 [specs2]: https://github.com/etorreborre/specs2
 [scalatest]: https://github.com/scalatest/scalatest
 [utest]: https://github.com/lihaoyi/utest
