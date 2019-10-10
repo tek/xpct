@@ -55,6 +55,28 @@ expectation in a for-comprehension regardless of the type of `Subject`.
 Nesting matchers is a mechanism that is implemented in an ad-hoc way in common spec frameworks. With **xpct**,
 a separate instance of `Match` can be defined that has another matcher type as its `Target`, allowing arbitrary nesting.
 
+# Included Matchers and Modifiers
+
+All matchers and modifiers can be chained, i.e. applied to both `IO` and `Xp[IO, *]`.
+
+## Match Types
+
+Alternative syntaxes are available for matching:
+
+### Implicit Methods
+
+```scala
+IO(1).must(beSome(1)).retryEvery(100.milli)(30)
+IO(1).assert(beSome(1)).attempt.retry(5)
+```
+
+### Combinators
+
+```scala
+retryEvery(100.milli)(30)(assert(beSome(1))(IO(1)))
+retry(5)(attempt(assert(beSome(1))(IO(1))))
+```
+
 # IO and Retrying
 When testing asynchronous programs, especially UIs, it is not unusual to wait for a condition to become fulfilled.
 In frameworks like **[specs2]** and **[scalatest]**, this feature is implemented as a special case with severe limitations
@@ -88,6 +110,8 @@ For the retry operation, an instance of `cats.effect.Timer[F]` is required.
 # Test Frameworks
 
 ## [kallikrein]
+**kallikrein** integration is the most seamless one, since it also focuses on `IO` programs.
+
 The `xpct-klk` package contains instances of `Compile[Xp]` and `TestResult[XpResult]`.
 Either import the package `xpct.klk._`, mix in `XpctKlk` or subclass `XpctKlkTest[F]`.
 

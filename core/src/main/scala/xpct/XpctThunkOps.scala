@@ -8,13 +8,16 @@ final class XpctThunkOps[F[_], Subject](subject: F[Subject])
   (matcher: Predicate[Target])
   (implicit m: Match[Predicate, Target, Subject, Output])
   : Xp[F, Output] =
-    Xp.assert(subject, matcher)
+    Xp.assert(matcher)(subject)
 
   def extract[Output]
   (f: PartialFunction[Subject, Output])
   (implicit m: Match[Match.Extract[Subject, ?], Output, Subject, Output])
   : Xp[F, Output] =
     assert(matcher.extract(f))
+
+  def equal(other: Subject): Xp[F, Subject] =
+    assert(Match.Equals(other))
 }
 
 trait ToXpctThunkOps

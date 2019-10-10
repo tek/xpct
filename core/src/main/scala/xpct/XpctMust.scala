@@ -12,7 +12,7 @@ final class XpctMust[F[_]: Applicative, Subject](subject: Xp[F, Subject])
   (b: Predicate[Target])
   (implicit m: Match[Predicate, Target, Subject, Output])
   : Xp[F, Output] =
-    subject.flatMap(a => Xp.assert(a.pure[F], b))
+    subject.flatMap(a => Xp.assert(b)(a.pure[F]))
 
   def must_==(a: Subject): Xp[F, Subject] =
     must(equal(a))
@@ -21,7 +21,7 @@ final class XpctMust[F[_]: Applicative, Subject](subject: Xp[F, Subject])
   (b: Predicate[Target])
   (implicit mtch: Match[Not, Predicate[Target], Subject, Output])
   : Xp[F, Output] =
-    subject.flatMap(a => Xp.assert(a.pure[F], not(b)))
+    subject.flatMap(a => Xp.assert(not(b))(a.pure[F]))
 }
 
 trait ToXpctMust

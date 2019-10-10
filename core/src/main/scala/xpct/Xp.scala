@@ -55,6 +55,7 @@ sealed trait Xp[F[_], A]
 object Xp
 extends XpInstances
 with XpFunctions
+with XpCombinators
 {
   type XpW[F[_], A] = WriterT[F, List[XpSuccess], A]
   type XpM[F[_], A] = EitherT[XpW[F, ?], XpFailure, A]
@@ -78,10 +79,11 @@ with XpFunctions
   extends Xp[F, B]
 }
 
-private[xpct] trait XpFunctions
+trait XpCombinators
 {
   def assert[F[_], Predicate[_], Target, Subject, Output]
-  (fa: F[Subject], pred: Predicate[Target])
+  (pred: Predicate[Target])
+  (fa: F[Subject])
   (implicit m: Match[Predicate, Target, Subject, Output]): Xp[F, Output] =
     Xp.Assert(fa, (a: Subject) => m(a, pred))
 
@@ -93,7 +95,10 @@ private[xpct] trait XpFunctions
 
   def retryEvery[F[_]: Timer, A](interval: FiniteDuration)(times: Int)(inner: Xp[F, A]): Xp[F, A] =
     Xp.Retry(inner, times, Some((interval, Timer[F])))
+}
 
+private[xpct] trait XpFunctions
+{
   def suspend[F[_], A](fa: F[A]): Xp[F, A] =
     Xp.Thunk(fa)
 

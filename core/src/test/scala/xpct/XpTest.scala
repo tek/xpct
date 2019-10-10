@@ -14,9 +14,9 @@ object XpTest
 
   def compose: Xp[IO, Unit] =
     for {
-      a <- Xp.assert(IO.pure(1), Match.Equals(1))
-      _ <- Xp.assert(IO.pure(2), Match.Equals(2))
-      _ <- Xp.retry(2)(Xp.attempt(Xp.assert(IO.pure(a), Match.Equals(2))))
+      a <- assert(Match.Equals(1))(IO.pure(1))
+      _ <- Xp.assert(Match.Equals(2))(IO.pure(2))
+      _ <- Xp.retry(2)(Xp.attempt(Xp.assert(Match.Equals(2))(IO.pure(a))))
     } yield ()
 
   def must: Xp[IO, Unit] =

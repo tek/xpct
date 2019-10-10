@@ -154,7 +154,7 @@ object Match
   }
 }
 
-trait MatcherCons
+trait Matchers
 {
   import Match._
 
@@ -165,6 +165,12 @@ trait MatcherCons
   def beSome[A](a: A): IsSome[A] = IsSome(a)
 
   def beASome[A]: IsSome[IsAny[A]] = IsSome(IsAny[A]())
+
+  def lt[A](a: A): Compares[A] =
+    Compares(a, { case Comparison.LessThan => true }, "<")
+
+  def lte[A](a: A): Compares[A] =
+    Compares(a, { case Comparison.LessThan | Comparison.EqualTo => true }, "<=")
 
   def gt[A](a: A): Compares[A] =
     Compares(a, { case Comparison.GreaterThan => true }, ">")
@@ -178,4 +184,4 @@ trait MatcherCons
 }
 
 object matcher
-extends MatcherCons
+extends Matchers

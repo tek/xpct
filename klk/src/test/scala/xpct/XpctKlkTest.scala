@@ -34,20 +34,20 @@ extends Specification
   "xpct klk success" >> test(single(true)("1 == 1"), single(true)("2 == 2"),
     single(true)("Not(Equals(2)) failed for 1 (Assert(1 /= 2))")) {
     for {
-      a <- Xp.assert(IO.pure(1), Match.Equals(1))
-      _ <- Xp.assert(IO.pure(2), Match.Equals(2))
-      _ <- Xp.assert(IO.pure(a), Match.Not(Match.Equals(2)))
+      a <- Xp.assert(Match.Equals(1))(IO.pure(1))
+      _ <- Xp.assert(Match.Equals(2))(IO.pure(2))
+      _ <- Xp.assert(Match.Not(Match.Equals(2)))(IO.pure(a))
     } yield ()
   }
 
   "xpct klk failure" >> test(single(false)("1 /= 2")) {
-    Xp.assert(IO.pure(1), Match.Equals(2))
+    Xp.assert(Match.Equals(2))(IO.pure(1))
   }
 
   "xpct klk retry" >> test(single(true)("5 == 5")) {
     for {
       counter <- Xp.suspend(Ref.of[IO, Int](0))
-      _ <- Xp.retry(4)(Xp.assert(counter.update(_ + 1) *> counter.get, Match.Equals(5)))
+      _ <- Xp.retry(4)(Xp.assert(Match.Equals(5))(counter.update(_ + 1) *> counter.get))
     } yield ()
   }
 
@@ -59,7 +59,7 @@ extends Specification
       }
     for {
       counter <- Xp.suspend(Ref.of[IO, Int](0))
-      _ <- Xp.retryEvery(100.milli)(4)(Xp.attempt(Xp.assert(run(counter), Match.Equals(5))))
+      _ <- Xp.retryEvery(100.milli)(4)(Xp.attempt(Xp.assert(Match.Equals(5))(run(counter))))
     } yield ()
   }
 

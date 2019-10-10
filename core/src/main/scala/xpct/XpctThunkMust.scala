@@ -9,14 +9,14 @@ final class XpctThunkMust[F[_], Subject](subject: F[Subject])
   (b: Predicate[Target])
   (implicit m: Match[Predicate, Target, Subject, Output])
   : Xp[F, Output] =
-    Xp.assert(subject, b)
+    Xp.assert(b)(subject)
 
   def must_==(a: Subject): Xp[F, Subject] = must(equal(a))
 
   def mustNot[Predicate[_], Target, Output]
   (b: Predicate[Target])
   (implicit mtch: Match[Not, Predicate[Target], Subject, Output])
-  : Xp[F, Output] = Xp.assert(subject, not(b))
+  : Xp[F, Output] = Xp.assert(not(b))(subject)
 }
 
 trait ToXpctThunkMust
