@@ -18,11 +18,11 @@ for {
 
 # Module IDs
 ```sbt
-"io.tryp" %% "xpct-core" % "0.2.0"
-"io.tryp" %% "xpct-klk" % "0.2.0"
-"io.tryp" %% "xpct-specs2" % "0.2.0"
-"io.tryp" %% "xpct-scalatest" % "0.2.0"
-"io.tryp" %% "xpct-utest" % "0.2.0"
+"io.tryp" %% "xpct-core" % "0.2.1"
+"io.tryp" %% "xpct-klk" % "0.2.1"
+"io.tryp" %% "xpct-specs2" % "0.2.1"
+"io.tryp" %% "xpct-scalatest" % "0.2.1"
+"io.tryp" %% "xpct-utest" % "0.2.1"
 ```
 
 # Features
