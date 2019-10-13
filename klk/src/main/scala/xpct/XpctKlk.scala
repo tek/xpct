@@ -1,7 +1,7 @@
 package xpct
 package klk
 
-import _root_.klk.{Compile, KlkResult, SimpleTest, TestResult}
+import _root_.klk.{Compile, KlkResult, SimpleTestBase, TestResult}
 import cats.{Functor, MonadError}
 import cats.data.NonEmptyList
 import cats.implicits._
@@ -51,6 +51,6 @@ object XpctKlk
 object `package`
 extends XpctKlkInstances
 
-trait XpctKlkTest[F[_]]
-extends SimpleTest[F]
+trait XpctKlkTest[F[_], FR]
+extends SimpleTestBase[F, FR]
 with XpctKlk

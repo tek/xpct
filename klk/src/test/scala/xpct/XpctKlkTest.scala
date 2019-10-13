@@ -26,7 +26,7 @@ extends Specification
     Multi(NonEmptyList.of(head, results: _*))
 
   def test[A](head: KlkResult, results: KlkResult*)(xp: Xp[IO, A]): MatchResult[Any] =
-    ConsTest[IO, HNil, Id, Unit](TestResources.empty)(xp.void).unsafeRunSync must_== multi(head, results: _*)
+    ConsTest[IO, HNil, Id](TestResources.empty)(xp.void).unsafeRunSync must_== multi(head, results: _*)
 
   def single(success: Boolean)(message: String): KlkResult =
     Single(success, Simple(List(message)))
@@ -52,6 +52,7 @@ extends Specification
   }
 
   "xpct klk attempt retry" >> test(single(true)("5 == 5")) {
+    import ops._
     def run(counter: Ref[IO, Int]): IO[Int] =
       counter.update(_ + 1) *> counter.get.map {
         case 5 => 5
@@ -59,11 +60,12 @@ extends Specification
       }
     for {
       counter <- Xp.suspend(Ref.of[IO, Int](0))
-      _ <- Xp.retryEvery(100.milli)(4)(Xp.attempt(Xp.assert(Match.Equals(5))(run(counter))))
+      _ <- retryEvery(100.milli)(4)(attempt(assert(Match.Equals(5))(run(counter))))
     } yield ()
   }
 
   "xpct klk must matcher" >> test(single(true)("contains 2")) {
-    new XpctThunkMust(IO.pure(List(1, 2, 3))).must(matcher.contain(2))
+    import must._
+    IO.pure(List(1, 2, 3)).must(matcher.contain(2))
   }
 }

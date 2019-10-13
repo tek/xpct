@@ -113,7 +113,7 @@ For the retry operation, an instance of `cats.effect.Timer[F]` is required.
 **kallikrein** integration is the most seamless one, since it also focuses on `IO` programs.
 
 The `xpct-klk` package contains instances of `Compile[Xp]` and `TestResult[XpResult]`.
-Either import the package `xpct.klk._`, mix in `XpctKlk` or subclass `XpctKlkTest[F]`.
+Either import the package `xpct.klk._`, mix in `XpctKlk` or subclass `XpctKlkTest[F, SbtResources]`.
 
 ## [specs2]
 The `xpct-specs2` package contains an instance of `AsResult[Xpct]`, which is sufficient for automatic conversion of
