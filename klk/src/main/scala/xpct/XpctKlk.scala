@@ -14,10 +14,10 @@ trait XpctKlkInstances
         XpctKlk.convertResult(output)
     }
 
-  implicit def Compile_Xp[F[_]: MonadError[*[_], Throwable]]
-  : Compile[Xp[F, ?], F, Unit] =
-    new Compile[Xp[F, ?], F, Unit] {
-      def apply(fa: Xp[F, Unit]): F[KlkResult] =
+  implicit def Compile_Xp[F[_]: MonadError[*[_], Throwable], A]
+  : Compile[Xp[F, ?], F, A] =
+    new Compile[Xp[F, ?], F, A] {
+      def apply(fa: Xp[F, A]): F[KlkResult] =
         RunXp(fa).map(XpctKlk.convertResult)
     }
 }
