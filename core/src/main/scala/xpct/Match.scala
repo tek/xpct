@@ -18,7 +18,9 @@ object Match
     implicit def Match_IsAny[A]: Match[IsAny, A, A, A] =
       new Match[IsAny, A, A, A] {
         def apply(a: A, fb: IsAny[A]): AssertResult[A] = {
-          AssertResult.Success(a, XpSuccess(s"$a exists"))
+          fb match {
+            case _ => AssertResult.Success(a, XpSuccess(s"$a exists"))
+          }
         }
       }
   }
@@ -46,9 +48,9 @@ object Match
 
   object Equals
   {
-    implicit def Match_Equals[A]: Match[Equals, A, A, A] =
-      new Match[Equals, A, A, A] {
-        def apply(a: A, fb: Equals[A]): AssertResult[A] = {
+    implicit def Match_Equals[A, B <: A]: Match[Equals, B, A, A] =
+      new Match[Equals, B, A, A] {
+        def apply(a: A, fb: Equals[B]): AssertResult[A] = {
           val b = fb.value
           if (a == b) AssertResult.success(s"$a == $b")(b)
           else AssertResult.failure(s"$a /= $b")
@@ -60,9 +62,9 @@ object Match
 
   object IsSome
   {
-    implicit def Match_IsSome[A: Eq]: Match[IsSome, A, Option[A], A] =
-      new Match[IsSome, A, Option[A], A] {
-        def apply(fa: Option[A], fb: IsSome[A]): AssertResult[A] = {
+    implicit def Match_IsSome[A: Eq, B <: A]: Match[IsSome, B, Option[A], A] =
+      new Match[IsSome, B, Option[A], A] {
+        def apply(fa: Option[A], fb: IsSome[B]): AssertResult[A] = {
           val a1 = fb.value
           fa match {
             case Some(v) =>
@@ -81,6 +83,36 @@ object Match
           fa match {
             case Some(a) => nested(a, fb.value)
             case None => AssertResult.failure(s"is `None`, expected $fb")
+          }
+        }
+      }
+  }
+
+  case class IsRight[A](value: A)
+
+  object IsRight
+  {
+    implicit def Match_IsRight[A: Eq, B <: A, C]: Match[IsRight, B, Either[C, A], A] =
+      new Match[IsRight, B, Either[C, A], A] {
+        def apply(fa: Either[C, A], fb: IsRight[B]): AssertResult[A] = {
+          val a1 = fb.value
+          fa match {
+            case Right(v) =>
+              if (Eq[A].eqv(v, a1)) AssertResult.success(s"Right contains $a1")(v)
+              else AssertResult.failure(s"is `Right`, but $v != $a1")
+            case Left(actual) => AssertResult.failure(s"is Left($actual), expected $fb")
+          }
+        }
+      }
+
+    implicit def Match_IsRight_Match[Predicate[_], Target, Subject, Output, C]
+    (implicit nested: Match[Predicate, Target, Subject, Output])
+    : Match[IsRight, Predicate[Target], Either[C, Subject], Output] =
+      new Match[IsRight, Predicate[Target], Either[C, Subject], Output] {
+        def apply(fa: Either[C, Subject], fb: IsRight[Predicate[Target]]): AssertResult[Output] = {
+          fa match {
+            case Right(a) => nested(a, fb.value)
+            case Left(actual) => AssertResult.failure(s"is Left($actual), expected $fb")
           }
         }
       }
@@ -105,9 +137,9 @@ object Match
 
   object Contains
   {
-    implicit def Match_Contains_mono[T[_]: Foldable, A: Eq]: Match[Contains, A, T[A], A] =
-      new Match[Contains, A, T[A], A] {
-        def apply(fa: T[A], fb: Contains[A]): AssertResult[A] = {
+    implicit def Match_Contains[T[_]: Foldable, A: Eq, B <: A]: Match[Contains, B, T[A], A] =
+      new Match[Contains, B, T[A], A] {
+        def apply(fa: T[A], fb: Contains[B]): AssertResult[A] = {
           Foldable[T].find(fa)(Eq[A].eqv(_, fb.value)) match {
             case Some(a) => AssertResult.success(s"contains ${fb.value}")(a)
             case None => AssertResult.failure(s"does not contain ${fb.value}")
@@ -165,6 +197,8 @@ trait Matchers
   def beSome[A](a: A): IsSome[A] = IsSome(a)
 
   def beASome[A]: IsSome[IsAny[A]] = IsSome(IsAny[A]())
+
+  def beRight[A](a: A): IsRight[A] = IsRight(a)
 
   def lt[A](a: A): Compares[A] =
     Compares(a, { case Comparison.LessThan => true }, "<")

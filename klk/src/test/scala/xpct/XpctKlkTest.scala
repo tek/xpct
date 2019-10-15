@@ -68,4 +68,10 @@ extends Specification
     import must._
     IO.pure(List(1, 2, 3)).must(matcher.contain(2))
   }
+
+  "xpct klk adt covariance" >> test(single(true)("Right contains 2")) {
+    import ops._
+    val v: Option[Either[String, Int]] = Some(Right(2))
+    assert(matcher.beSome(matcher.beRight(2)))(IO.pure(v))
+  }
 }
